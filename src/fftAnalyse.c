@@ -2,7 +2,7 @@
     Copyright (C), 2013, Hnist FS_GCZX.
     
     FileName: 
-    Author:     Version :       Date:
+    Author: huyong    Version :       Date:
     Description:
     Function List: 
     1.
@@ -60,66 +60,65 @@ void vTest_PerformFFT(void)
 
 void Measure_SignalPeriod(void )
 {
-    uint32_t i = 0, tmp = 0x00;
-    fftVal.Signalperiod = 0;
+    uint32_t i = 0,tmpPeriod=0; //tmp = 0x00,
+    //fftVal.Signalperiod = 0;
     fftVal.Flag_Cap0Done = RESET;
-    while(i<4)
+    while(i<10)   //
     {
         if(fftVal.Flag_Cap0Done != RESET)
         {
             if(fftVal.cap0Val[1] > fftVal.cap0Val[0])
-            {   
-                tmp = fftVal.cap0Val[1]-fftVal.cap0Val[0];
-                fftVal.Signalperiod = fftVal.Signalperiod + tmp;
-                ++i;
+            {
+                tmpPeriod = tmpPeriod + fftVal.cap0Val[1]-fftVal.cap0Val[0];
             }
+//             else //
+//             {
+//                 tmpPeriod = tmpPeriod + 0XFFFFFFFF - fftVal.cap0Val[0]+ fftVal.cap0Val[1];
+//             }
+            ++i;
             fftVal.Flag_Cap0Done = RESET;   //计算完毕，复位捕获完成位
         }
     }
-    fftVal.Signalperiod >>= 2;
-    fftVal.Flag_Cap0Done = SET;
+    fftVal.Signalperiod = tmpPeriod; // 100MHz的10次数据
+    //fftVal.Signalperiod = (float)(tmpPeriod/1000); // 100Mhz计数时间转成1us
+//    fftVal.Flag_Cap0Done = SET;
 }
 
-void TIMER0_IRQHandler()
+void TIMER2_IRQHandler()
 {
-    if(LPC_TIM0->IR&TIM_IT_CR0)  //CAP0.0的中断是否允许
+//    if(LPC_TIM2->IR&TIM_IT_CR0)  //CAP2.0的中断是否允许
+    if(fftVal.Flag_Cap0 != SET)
     {
-        LPC_TIM0->IR |= TIM_IT_CR0; //清中断
-        if(fftVal.Flag_Cap0Done != SET)
-        {
-            if(fftVal.Flag_Cap0 != SET)
-            {
-                fftVal.cap0Val[0] = LPC_TIM0->CR0;
-                fftVal.Flag_Cap0 = SET;
-                LED1_ON;
-            }
-            else
-            {
-                fftVal.cap0Val[1] = LPC_TIM0->CR0;
-                fftVal.Flag_Cap0 = RESET;
-                fftVal.Flag_Cap0Done = SET;
-                LED1_OFF;
-            }
-        }
-        else
-        {
-            ++fftVal.CntRisingEdge;
-        }
+        fftVal.cap0Val[0] = LPC_TIM2->CR0;
+        fftVal.Flag_Cap0 = SET;
     }
+    else
+    {
+        fftVal.cap0Val[1] = LPC_TIM2->CR0;
+        fftVal.Flag_Cap0 = RESET;
+        fftVal.Flag_Cap0Done = SET;
+    }
+    LPC_TIM2->IR |= TIM_IT_CR0; //CAP2.0清中断
+    ++fftVal.CntEdge;
 }
 
-void PeripInit_TIM(void )
-{   
+void PeripInit_TIM2_CAP0(void )
+{
+    TIM_CountResetCmd(LPC_TIM2, ENABLE);
+    TIM_CountResetCmd(LPC_TIM2, DISABLE);
+    TIM_CntTimControl(LPC_TIM2, CAPn_0, TIMMode_Timer);
+    TIM_CaputreControl(LPC_TIM2, CAPn_0, TIMMode_Falling);//cap0捕获下降沿
+    TIM_CaptureIntCmd(LPC_TIM2, CAPn_0, ENABLE);  //捕获中断允许
+    TIM_CountCmd(LPC_TIM2, ENABLE);  //启动TIM2
+}
+
+void PeripInit_TIM0_MAT1(void )
+{
     TIM_CountResetCmd(LPC_TIM0, ENABLE);
     TIM_CountResetCmd(LPC_TIM0, DISABLE);
-    TIM_SetClockPRDiv(LPC_TIM0, 49);        // 1MHZ
-    TIM_CntTimControl(LPC_TIM0, CAPn_0, TIMMode_Timer);
-    TIM_CaputreControl(LPC_TIM0, CAPn_0, TIMMode_Rising);
-    TIM_CaptureIntCmd(LPC_TIM0, CAPn_0, ENABLE);
-
-    TIM_CountCmd(LPC_TIM0, ENABLE);
+    TIM_ExtMatchControl(LPC_TIM0, TIM_EMC1_TOG);        //MAT0.1翻转，产生ADC触发时钟
+    TIM_MatchControlCmd(LPC_TIM0, TIM_MR1R, ENABLE);
 }
-
 /************************************************************
   Function   : ()
   Description: 
@@ -169,7 +168,6 @@ void PeripInit_DMAChan2(void )
     
     DMA_ITTCMaskCmd(LPC_GPDMACH2, ENABLE);
     DMA_ITTCCmd(LPC_GPDMACH2, ENABLE);
-
 }
 /************************************************************
 End of filename

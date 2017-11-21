@@ -2,7 +2,7 @@
     Copyright (C), 2013, Hnist FS_GCZX.
     
     FileName: .c
-    Author:     Version :       Date:
+    Author: huyong    Version :       Date:
     Description:
     Function List: 
     1.
@@ -41,9 +41,9 @@
 void ADC_Init(ADC_InitTypeDef* ADC_InitStruct)
 {
     uint32_t tmp = 0X00;
-    tmp = (FPCLK_ADC/ADC_InitStruct->ADC_ClockFreq - 1) << 8;
+    //tmp = (uint32_t)((FPCLK_ADC/(float)ADC_InitStruct->ADC_ClockFreq - 1)*256)&0x0000ff00;
 
-    LPC_ADC->ADCR = ADC_InitStruct->ADC_SamplePins | tmp | 
+    LPC_ADC->ADCR = ADC_InitStruct->ADC_SamplePins | 0x00000100 | 
                     ADC_InitStruct->ADC_BurstConv | ADC_InitStruct->ADC_Mode | 
                     ADC_InitStruct->ADC_StartSignal | ADC_InitStruct->ADC_StartEdge;
 }

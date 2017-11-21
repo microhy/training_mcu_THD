@@ -2,7 +2,7 @@
     Copyright (C), 2013, Hnist FS_GCZX.
     
     FileName: .c
-    Author:     Version :       Date:
+    Author:  huyong   Version :       Date:
     Description:
     Function List: 
     1.
@@ -181,7 +181,7 @@ void TIM_CntTimControl(LPC_TIM_TypeDef* LPC_TIMx, uint16_t capn, uint16_t cntMod
 
 /************************************************************
   Function   : TIM_MatchControlCmd()
-  Description: 定时器匹配控制命令 
+  Description: 定时器匹配控制命令
   Input      : 
    @param  LPC_TIMx : 定时器0,1,2,3
      @arg LPC_TIM0,1,2,3
@@ -195,7 +195,7 @@ void TIM_CntTimControl(LPC_TIM_TypeDef* LPC_TIMx, uint16_t capn, uint16_t cntMod
      @arg DISABLE: 禁能中断
   Output     : None
   Return     : None
-  Others     : 操作：LPC_TIMx->MCR  
+  Others     : 操作：LPC_TIMx->MCR
 ************************************************************/
 void TIM_MatchControlCmd(LPC_TIM_TypeDef* LPC_TIMx, uint16_t TIMMRx, FunctionalState NewState)
 {
@@ -205,7 +205,7 @@ void TIM_MatchControlCmd(LPC_TIM_TypeDef* LPC_TIMx, uint16_t TIMMRx, FunctionalS
     }
     else
     {
-        LPC_TIMx->MCR &=~(TIMMRx);
+        LPC_TIMx->MCR &=~TIMMRx;
     }
 }
 

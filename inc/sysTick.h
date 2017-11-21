@@ -37,6 +37,8 @@
        
 /**********Function Prototypes**********/
 void SysTick_Delayus(uint32_t nus);
+void delayus(uint32_t nus);
+void delayms(uint32_t nms);
 void SysTick_Delayms(uint32_t nms);
     
 #ifdef __cplusplus

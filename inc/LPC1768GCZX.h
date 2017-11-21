@@ -15,7 +15,7 @@
     extern "C" {
 #endif 
 
-#include "../system_h/math.h"
+#include <math.h>
 #include "../system_h/stdio.h"
 #include "../system_h/stdint.h"
 #include "../system_h/stdlib.h"

@@ -531,6 +531,16 @@
               <FilePath>.\src\fftAnalyse.c</FilePath>
             </File>
             <File>
+              <FileName>ili9320.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\ili9320.c</FilePath>
+            </File>
+            <File>
+              <FileName>ili9320_api.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\ili9320_api.c</FilePath>
+            </File>
+            <File>
               <FileName>lpc_PGA2310.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\lpc_PGA2310.c</FilePath>
@@ -1072,6 +1082,16 @@
               <FileName>fftAnalyse.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\fftAnalyse.c</FilePath>
+            </File>
+            <File>
+              <FileName>ili9320.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\ili9320.c</FilePath>
+            </File>
+            <File>
+              <FileName>ili9320_api.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\ili9320_api.c</FilePath>
             </File>
             <File>
               <FileName>lpc_PGA2310.c</FileName>

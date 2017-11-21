@@ -22,12 +22,20 @@
 #include "../system_h/lpc17xx.h"
 #include "../system_h/stdint.h"
 #include "../inc/lpc17xx_gpio.h"
-        
+
+#define     ADN     4
 typedef struct{
-    uint32_t ADC0ValMax;
-    uint32_t ADC0Value0;
-    FlagStatus flag_AdjDone; //调整完成标志位
+    //uint32_t ADC0Value[ADN+1];
+    uint32_t ADC0Value_buf;
+    uint32_t ADC0Value_cur;
+    //uint32_t ADC0ValMax;
+    //uint32_t Cnt_avoidDither;   //消抖动计数
     FlagStatus flag_Timer10ms;
+    FlagStatus flag_AdjDone; //调整完成标志位
+    FlagStatus flag_AD0IntDone;
+    //uint32_t TimerCnt_Tog;
+    //float VinMax;
+    //float VinCurrent;
     uint8_t Gain_ChanL;
     uint8_t Gain_ChanR;
 }GainAdjust_DataDef;
@@ -57,7 +65,7 @@ extern volatile GainAdjust_DataDef GainAdjVal;
 /**********Variables********************/
        
 /**********Function Prototypes**********/
-void GainAdjust_Func(void );
+void PGA2310_GainAdjust_Func(void );
 void PeripInit_TIM_GainAdjust(void );
 void PeripInit_ADC_GainAdjust(void );
 void PGA2310_PortInit(void );

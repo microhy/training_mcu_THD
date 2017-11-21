@@ -2,7 +2,7 @@
     Copyright (C), 2013, Hnist FS_GCZX.
     
     FileName: .c
-    Author:     Version :       Date:
+    Author: huyong    Version :       Date:
     Description:
     Function List: 
     1.
@@ -32,7 +32,27 @@ void SysTick_Delayus(uint32_t nus)
     SysTick->CTRL &=~BIT0;
     SysTick_Flag = RESET;
 }
-    
+void delayus(uint32_t nus)
+{
+    SysTick->LOAD = FAC_US*nus-1;
+    SysTick->VAL = (0x00);
+    // 打开计数器开始倒数，关中断，选择CPU时钟
+    SysTick->CTRL = (BIT0|BIT2);       
+    while(! (SysTick->CTRL&BIT16));
+    SysTick->CTRL &=~BIT0;
+    SysTick_Flag = RESET;
+}
+
+void delayms(uint32_t nms)
+{
+    SysTick->LOAD = FAC_MS*nms-1;
+    SysTick->VAL = (0x00);
+    // 打开计数器开始倒数，关中断，选择CPU时钟
+    SysTick->CTRL = (BIT0|BIT2);       
+    while(! (SysTick->CTRL&BIT16));
+    SysTick->CTRL &=~BIT0;
+    SysTick_Flag = RESET;
+}
 void SysTick_Delayms(uint32_t nms)
 {
     SysTick->LOAD = FAC_MS*nms-1;

@@ -32,10 +32,15 @@
 typedef struct
 {
     uint32_t cap0Val[2];
+    uint32_t CntEdge;
     FlagStatus Flag_Cap0;
     FlagStatus Flag_Cap0Done;
-    uint32_t Signalperiod;
-    uint32_t CntRisingEdge;
+    uint32_t adcMostMax;   //最大值
+    uint32_t adcMoreMax;   //次最大值
+    uint8_t  adcMostMax_num;
+    float SignalFreq;
+    float Signalperiod;
+    float SignalTHD;
 //    float Frequency;
 }fftAnalyse_DataDef;
 
@@ -48,7 +53,8 @@ extern volatile short psi_Output[NPOINTS * 2];
 /**********Function Prototypes**********/
 void vTest_PerformFFT(void);
 void Measure_SignalPeriod(void );
-void PeripInit_TIM(void );
+void PeripInit_TIM2_CAP0(void );
+void PeripInit_TIM0_MAT1(void );
 void PeripInit_ADC(void );
 void PeripInit_DMAChan2(void );
 

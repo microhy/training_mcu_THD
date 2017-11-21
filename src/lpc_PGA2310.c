@@ -2,7 +2,7 @@
     Copyright (C), 2013, Hnist FS_GCZX.
     
     FileName: .c
-    Author:     Version :       Date:
+    Author: huyong    Version :       Date:
     Description:
     Function List: 
     1.
@@ -14,68 +14,67 @@
 /**********Includes*********************/
 #include "../inc/lpc_PGA2310.h" 
 
-/**********Macros***********************/
-#define     SIGNALE_AMP_LIMIT    3600
+/**********Macros***********************/   //去掉直流量
+#define     SIGNALE_AMP_LIMIT    1150      /* 4096*2.8V/3.3 = 3475-2048(1.65V)≈1430*/
+#define     AMP_OFFSET_LOW       101       /*  80*3.3/4096 = 100 mV*/
+#define     AMP_OFFSET_HIGH      51        /*  50*3.3/4096 = 50 mV*/
 /**********Variables********************/
 volatile GainAdjust_DataDef GainAdjVal = {0};
 
 /**********Function Prototypes**********/
 
-
+#define     N       5
 /**********MAIN Routine*****************/
-void GainAdjust_Func(void )
-{
-    float adjAv,adjdB;
-    uint8_t tmp;
-    //PeripInit_TIM_GainAdjust();
-    //PeripInit_ADC_GainAdjust();
-    GainAdjVal.Gain_ChanL = 192;
-    GainAdjVal.Gain_ChanR = GainAdjVal.Gain_ChanL;
-    while(GainAdjVal.flag_AdjDone == RESET)
+void PGA2310_GainAdjust_Func(void )
+{   
+    //int tmp,tmpL,tmpR;
+    //float adjAv,adjdB; //,currentdB
+    //GainAdjVal.Gain_ChanL = 192;
+    //GainAdjVal.Gain_ChanR = GainAdjVal.Gain_ChanL;
+    printf("cur = %d  ",GainAdjVal.ADC0Value_cur);
+    if((SIGNALE_AMP_LIMIT>GainAdjVal.ADC0Value_cur)&&(SIGNALE_AMP_LIMIT-GainAdjVal.ADC0Value_cur>AMP_OFFSET_LOW))
     {
-        PGA2310_GainConfig(GainAdjVal.Gain_ChanL, GainAdjVal.Gain_ChanR);
-        while( GainAdjVal.flag_Timer10ms == RESET);
-        TIM_CountCmd(LPC_TIM1, DISABLE); //cnt dis
-        ADC_StartConvCmd(DISABLE);  //stop
-        GainAdjVal.flag_Timer10ms = RESET; //reset
-        if( GainAdjVal.ADC0ValMax>= SIGNALE_AMP_LIMIT ||(GainAdjVal.Gain_ChanL>=250))
+        if(GainAdjVal.Gain_ChanL<=253)
         {
-            GainAdjVal.flag_AdjDone = SET;
+            GainAdjVal.Gain_ChanL += 2;
         }
-        else
+        else if(GainAdjVal.Gain_ChanR<=253)
         {
-            adjAv = (float)(SIGNALE_AMP_LIMIT/(float)GainAdjVal.ADC0ValMax); //限制的最大幅值除以当前最大值
-            adjdB = (float)10*log(adjAv); //本来是20logAv倍，两个通道故除以2
-            tmp = (uint8_t)(2*adjdB + 192);   //转换成PGA2310配置要加上的数
-            if(tmp<=255)
-            {
-                GainAdjVal.Gain_ChanL = tmp;
-                GainAdjVal.Gain_ChanR = GainAdjVal.Gain_ChanL;
-                PGA2310_GainConfig(GainAdjVal.Gain_ChanL, GainAdjVal.Gain_ChanR);
-            }
-            else
-            {
-                GainAdjVal.flag_AdjDone = SET;
-            }
-            TIM_CountCmd(LPC_TIM1, ENABLE);
-            TIM_CountCmd(LPC_TIM1, ENABLE);
+            GainAdjVal.Gain_ChanR += 2;
         }
+        //PGA2310_GainConfig(GainAdjVal.Gain_ChanL, GainAdjVal.Gain_ChanR);
+        printf("rising GL = %d, GR = %d\n",GainAdjVal.Gain_ChanL, GainAdjVal.Gain_ChanR);
     }
+    else if((GainAdjVal.ADC0Value_cur>SIGNALE_AMP_LIMIT)&&(GainAdjVal.ADC0Value_cur-SIGNALE_AMP_LIMIT>AMP_OFFSET_HIGH))
+    {
+        if(GainAdjVal.Gain_ChanL>=3)
+        {
+            GainAdjVal.Gain_ChanL -= 3;
+        }
+        else if(GainAdjVal.Gain_ChanR>=3)
+        {
+            GainAdjVal.Gain_ChanR -= 3;
+        }
+        //PGA2310_GainConfig(GainAdjVal.Gain_ChanL, GainAdjVal.Gain_ChanR);
+        printf("falling GL = %d, GR = %d\n",GainAdjVal.Gain_ChanL, GainAdjVal.Gain_ChanR);
+    }//增益的更新会在频率测量之后更新
+    
 }
 
 void PeripInit_TIM_GainAdjust(void )
 {   
     TIM_CountResetCmd(LPC_TIM1, ENABLE);
     TIM_CountResetCmd(LPC_TIM1, DISABLE);
-    TIM_SetClockPRDiv(LPC_TIM1, 25-1);        // 1MHZ
+    TIM_SetClockPRDiv(LPC_TIM1, 5-1);        // 25/5=5MHZ
     LPC_TIM1->PC = 0;
     LPC_TIM1->TC = 0;  
-    LPC_TIM1->MR0 = 10000-1; //1Mhz计时10ms
+    LPC_TIM1->MR0 = 250000-1; //5Mhz计时50ms
     TIM_MatchControlCmd(LPC_TIM1, TIM_MR0I|TIM_MR0R, ENABLE);
+    //TIM_ExtMatchControl(LPC_TIM1, TIM_EMC0_TOG);
     //TIM_CntTimControl(LPC_TIM0, CAPn_0, TIMMode_Timer);
     //TIM_CaputreControl(LPC_TIM0, CAPn_0, TIMMode_Rising);
     //TIM_CaptureIntCmd(LPC_TIM0, CAPn_0, ENABLE);
-    TIM_CountCmd(LPC_TIM1, ENABLE);
+    //TIM_CountCmd(LPC_TIM1, ENABLE);
 }
 /************************************************************
   Function   : ()
@@ -85,20 +84,20 @@ void PeripInit_TIM_GainAdjust(void )
   Return     : None
   Others     : 
 ************************************************************/
-void PeripInit_ADC_GainAdjust(void )
-{
-    ADC_InitTypeDef ADC_InitStruct;
-    ADC_InitStruct.ADC_SamplePins = ADC_SamplePins_0;
-    ADC_InitStruct.ADC_ClockFreq = 13000000;
-    ADC_InitStruct.ADC_BurstConv = ADC_BurstConv_Disable;
-    ADC_InitStruct.ADC_Mode = ADC_Mode_Opeartional;
-    ADC_InitStruct.ADC_StartSignal = ADC_StartSignal_Start;
-    ADC_InitStruct.ADC_StartEdge = ADC_StarteEdge_Rising;
-    ADC_Init(&ADC_InitStruct);
-    ADC_ITConfig(ADC_IT_GLOBDONE, DISABLE);
-    ADC_ITConfig(ADC_IT_CHANNEL0, ENABLE);
-    ADC_StartConvCmd(ENABLE);
-}
+// void PeripInit_ADC_GainAdjust(void )
+// {
+//     uint32_t tmp;
+//     ADC_InitTypeDef ADC_InitStruct;
+//     ADC_InitStruct.ADC_SamplePins = ADC_SamplePins_2;
+//     ADC_InitStruct.ADC_ClockFreq = 12000000;  // 12MHz
+//     ADC_InitStruct.ADC_BurstConv = ADC_BurstConv_Enable;
+//     ADC_InitStruct.ADC_Mode = ADC_Mode_Opeartional;
+//     ADC_InitStruct.ADC_StartSignal = ADC_StartSignal_Stop;
+//     ADC_InitStruct.ADC_StartEdge = ADC_StartEdge_Rising;
+//     ADC_ITConfig(ADC_IT_GLOBDONE, DISABLE);
+//     ADC_Init(&ADC_InitStruct);
+//     ADC_ITConfig(ADC_IT_CHANNEL2, ENABLE);
+// }
 
 void PGA2310_PortInit(void )
 {
